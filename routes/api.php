@@ -17,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+/**
+ * To register and get a new access token
+ */
+Route::post('register','App\Modules\UserManagement\UserController@create');
