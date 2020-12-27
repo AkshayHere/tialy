@@ -33,33 +33,33 @@ class UserController extends Controller
             $password = $user['password'];
 
             // check for refersh token and handle it
-            if (Cache::has($email)) {
-                $out = Cache::get($email);
-                Log::info('$out : ' . $out);
+            // if (Cache::has($email)) {
+            //     $out = Cache::get($email);
+            //     Log::info('$out : ' . $out);
 
-                $request->request->add([
-                    'grant_type' => 'refresh_token',
-                    'refresh_token' => $out,
-                    'client_id' => $client->id,
-                    'client_secret' => $client->secret,
-                    'scope' => '*',
-                ]);
+            //     $request->request->add([
+            //         'grant_type' => 'refresh_token',
+            //         'refresh_token' => $out,
+            //         'client_id' => $client->id,
+            //         'client_secret' => $client->secret,
+            //         'scope' => '*',
+            //     ]);
 
-                // Fire off the internal request.
-                $token = Request::create(
-                    'oauth/token',
-                    'POST'
-                );
+            //     // Fire off the internal request.
+            //     $token = Request::create(
+            //         'oauth/token',
+            //         'POST'
+            //     );
 
-                $response = Route::dispatch($token)->getContent();
-                $responseData = json_decode($response, true);
+            //     $response = Route::dispatch($token)->getContent();
+            //     $responseData = json_decode($response, true);
 
-                if (isset($responseData['refresh_token'])) {
-                    Cache::put($email, $responseData['refresh_token'], 600);
-                }
+            //     if (isset($responseData['refresh_token'])) {
+            //         Cache::put($email, $responseData['refresh_token'], 600);
+            //     }
 
-                return response()->json($responseData);
-            } else {
+            //     return response()->json($responseData);
+            // } else {
                 UserService::deleteUserByEmail($email);
                 UserService::createUser($name, $email, $password);
 
@@ -85,7 +85,7 @@ class UserController extends Controller
                 }
 
                 return response()->json($responseData);
-            }
+            // }
 
         } else {
             $valid = validator($request->only('email', 'name', 'password', 'mobile'), [
