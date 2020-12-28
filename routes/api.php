@@ -18,3 +18,5 @@ use Illuminate\Support\Facades\Route;
  * To register and get a new access token
  */
 Route::post('register','App\Modules\UserManagement\UserController@create');
+
+Route::get('/urls','\App\Modules\URLShortener\Controllers\UrlShortenerController@getAllUrls')->name('list-urls');

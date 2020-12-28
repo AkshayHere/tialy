@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+Route::get('/', function () {
+    return view('welcome');
+});
 
 Route::get('/{shortUrlCode}','\App\Modules\URLShortener\Controllers\UrlShortenerController@loadShortURL')->where('shortUrlCode', '.*')->name("shorturl");

@@ -2,6 +2,7 @@
 
 namespace App\Modules\URLShortener\Services;
 
+use App\Models\User;
 use App\Modules\URLShortener\Models\ShortURL;
 use Illuminate\Support\Str;
 
@@ -17,11 +18,12 @@ class URLShortenerService
     }
 
     // Save Short URL Code
-    static function saveShortUrlCode($short_url_code, $redirect_url): bool
+    static function saveShortUrlCode($short_url_code, $redirect_url, User $user = null): bool
     {
         $shortUrlInfo = new ShortURL();
-        $shortUrlInfo->short_url_code = $short_url_code;
+        $shortUrlInfo->slug = $short_url_code;
         $shortUrlInfo->redirect_url = $redirect_url;
+        $shortUrlInfo->creator_id = !empty($user) ? $user->email : null;
         $shortUrlInfo->save();
 
         return true;
@@ -30,19 +32,19 @@ class URLShortenerService
     // Check if URL code valid or not
     static function isShortUrlCodeValid($short_url_code): bool
     {
-        return ShortURL::where('short_url_code',$short_url_code)->exists();
+        return ShortURL::where('slug',$short_url_code)->exists();
     }
 
     // Get redirect url
     static function getRedirectURL($short_url_code): ?string
     {
-        return ShortURL::where('short_url_code',$short_url_code)->value('redirect_url');
+        return ShortURL::where('slug',$short_url_code)->value('redirect_url');
     }
 
     // Get Short Code Details
     static function getShortUrlCodeDetails($short_url_code): ?ShortURL
     {
-        return ShortURL::where('short_url_code',$short_url_code)->first();
+        return ShortURL::where('slug',$short_url_code)->first();
     }
 
     // Check if Redirect URL already exists
@@ -58,7 +60,12 @@ class URLShortenerService
             return null;
         }
         else{
-            return ShortURL::where('redirect_url',$redirect_url)->first()->short_url_code;
+            return ShortURL::where('redirect_url',$redirect_url)->first()->slug;
         }        
+    }
+
+    static function getAllShortUrls(): ?array
+    {
+        return ShortURL::select('slug', 'redirect_url', 'creator_id')->all();
     }
 }

@@ -16,7 +16,14 @@ use Illuminate\Support\Facades\Route;
 /**
  * Manage Short URLs
  */
-// load short url
-Route::post('/urls', '\App\Modules\URLShortener\Controllers\UrlShortenerController@generateShortUrl')->name('generate-url');
+
 
 // Route::post('/url/customize','\App\Modules\URLShortener\Controllers\UrlShortenerController@customizeShortUrl')->name('url-customize');
+
+// show all urls
+Route::get('/urls','\App\Modules\URLShortener\Controllers\UrlShortenerController@getAllUrls')->name('list-urls');
+
+Route::group(['middleware' => ['auth:api']], function () {
+    // create short url
+    Route::post('/urls', '\App\Modules\URLShortener\Controllers\UrlShortenerController@generateShortUrl')->name('generate-url');
+});
