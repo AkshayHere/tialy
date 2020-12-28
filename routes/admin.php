@@ -4,12 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| ADMIN Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
+| Custom routes created for admin users
 |
  */
 
@@ -17,13 +14,25 @@ use Illuminate\Support\Facades\Route;
  * Manage Short URLs
  */
 
-
 // Route::post('/url/customize','\App\Modules\URLShortener\Controllers\UrlShortenerController@customizeShortUrl')->name('url-customize');
 
-// show all urls
-Route::get('/urls','\App\Modules\URLShortener\Controllers\UrlShortenerController@getAllUrls')->name('list-urls');
-
 Route::group(['middleware' => ['auth:api']], function () {
-    // create short url
+    // create short url using url
     Route::post('/urls', '\App\Modules\URLShortener\Controllers\UrlShortenerController@generateShortUrl')->name('generate-url');
+    
+    // get all short urls
+    Route::get('/urls', '\App\Modules\URLShortener\Controllers\UrlShortenerController@getAllUrls')->name('list-urls');
+
+    // get short url details by slug
+    Route::get('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@getUrlBySlug')->name('get-url-by-slug');  
+    
+    // set redirect url by slug
+    Route::put('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@setUrlBySlug')->name('set-url-by-slug');  
+    
+    // delete short url by slug
+    Route::delete('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@deleteUrlBySlug')->name('delete-url-by-slug');  
+});
+
+Route::get('/greeting', function () {
+    return 'Hello World';
 });

@@ -4,11 +4,12 @@ namespace App\Modules\URLShortener\Services;
 
 use App\Models\User;
 use App\Modules\URLShortener\Models\ShortURL;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class URLShortenerService
 {
-    // Generate Random String
+    // Generate random string
     static function GenerateRand(): string
     {
         do {
@@ -29,7 +30,12 @@ class URLShortenerService
         return true;
     }
 
-    // Check if URL code valid or not
+    /**
+     * Check if short URL code already exists
+     *
+     * @param [type] $short_url_code
+     * @return boolean
+     */
     static function isShortUrlCodeValid($short_url_code): bool
     {
         return ShortURL::where('slug',$short_url_code)->exists();
@@ -64,8 +70,25 @@ class URLShortenerService
         }        
     }
 
-    static function getAllShortUrls(): ?array
+    static function getAllShortUrls()
     {
-        return ShortURL::select('slug', 'redirect_url', 'creator_id')->all();
+        return ShortURL::select(['slug', 'redirect_url', 'creator_id'])->get()->toArray();
+    }
+
+    static function getShortUrlDetailsByShortCode(string $shortCode)
+    {
+        return ShortURL::where('slug',$shortCode)->select(['slug', 'redirect_url', 'creator_id'])->first();
+    }
+
+    // Update redirect URL by short code
+    static function updateRedirectURLByShortCode(string $shortCode, string $newRedirectURL):?bool
+    {
+        return ShortURL::where('slug',$shortCode)->update(['redirect_url'=> $newRedirectURL]);
+    }
+
+    // Delete
+    static function deleteShortURLDetails(string $shortCode):?bool
+    {
+        return ShortURL::where('slug',$shortCode)->delete();
     }
 }

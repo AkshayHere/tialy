@@ -30,6 +30,8 @@ class RouteServiceProvider extends ServiceProvider
 
     /**
      * Define your route model bindings, pattern filters, etc.
+     * 
+     * Pro tip: Custom Routes should be placed on the top
      *
      * @return void
      */
@@ -38,6 +40,10 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function () {
+            Route::prefix('admin')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/admin.php'));
+
             Route::prefix('api')
                 ->middleware('api')
                 ->namespace($this->namespace)
@@ -46,8 +52,6 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
-
-            $this->mapAdminRoutes();
         });
     }
 
@@ -61,13 +65,5 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
         });
-    }
-
-    protected function mapAdminRoutes()
-    {
-        Route::prefix('admin')
-            // ->middleware('auth:api')
-            ->namespace($this->namespace)
-            ->group(base_path('routes/admin.php'));
     }
 }

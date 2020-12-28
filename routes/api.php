@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,4 +18,4 @@ use Illuminate\Support\Facades\Route;
  */
 Route::post('register','App\Modules\UserManagement\UserController@create');
 
-Route::get('/urls','\App\Modules\URLShortener\Controllers\UrlShortenerController@getAllUrls')->name('list-urls');
+// Route::get('/urls', '\App\Modules\URLShortener\Controllers\UrlShortenerController@getAllUrls')->name('list-urls');

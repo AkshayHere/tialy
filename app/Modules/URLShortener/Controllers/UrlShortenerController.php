@@ -7,7 +7,6 @@ use App\Helpers\ErrorRespository;
 use App\Helpers\Response;
 use App\Http\Controllers\Controller;
 use App\Modules\URLShortener\Services\URLShortenerService;
-use App\Modules\UserManagement\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -17,6 +16,8 @@ class UrlShortenerController extends Controller
 {
     /**
      * Generates a short URL
+     * METHOD : POST
+     * URL    : admin/urls
      *
      * @param Request $request
      * @return void
@@ -29,12 +30,25 @@ class UrlShortenerController extends Controller
             ErrorRespository::addError('0', 'Missing User Data !');
             return response()->json((new CustomResponse())->error());
         }
-        
+
+        // validate inputs
+        $valid = validator($request->only('url', 'customSlug'), [
+            'url' => 'required|url',
+            'customSlug' => 'string|min:8|max:20|nullable',
+        ]);
+
+        if ($valid->fails()) {
+            $jsonError = response()->json($valid->errors()->all(), 400);
+            return response()->json($jsonError);
+        }
+
         // validate inputs
         $url = $request->input('url', false);
-        if (empty($url)) {
-            ErrorRespository::addError('0', 'Missing URL/Parameters !');
-            return response()->json((new CustomResponse())->error());
+        $customSlug = $request->input('customSlug', '');
+
+        // trim trailing slash
+        if (substr($url, -1) == '/') {
+            $url = substr($url, 0, -1);
         }
 
         // Check if URL already has a short code | if have, then retrieve that guy
@@ -51,8 +65,20 @@ class UrlShortenerController extends Controller
             return json_encode($response, JSON_UNESCAPED_SLASHES);
         }
 
-        $random = !empty($customize) ? $customize : URLShortenerService::GenerateRand();
+        // generate slug
+        $random = URLShortenerService::GenerateRand();
+
+        // customize slug
+        if (!empty($customSlug)) {
+            $str = 'a';
+            $temp = $customSlug;
+            while (URLShortenerService::isShortUrlCodeValid($customSlug)) {
+                $customSlug = $str++ . '/' . $temp;
+            }
+            $random = strtolower($customSlug);
+        }
         Log::info('$random : ' . $random);
+        // dd($random);
 
         $isSaveShortURL = URLShortenerService::saveShortUrlCode($random, $url, $user);
 
@@ -72,6 +98,9 @@ class UrlShortenerController extends Controller
 
     /**
      * Load the short URL
+     * METHOD : GET
+     * URL    : /{slug}
+     * Unprotected route
      */
     public function loadShortURL(Request $request, $shortUrlCode)
     {
@@ -81,7 +110,7 @@ class UrlShortenerController extends Controller
 
         if (URLShortenerService::isShortUrlCodeValid($shortUrlCode)) {
             $redirectURL = URLShortenerService::getRedirectURL($shortUrlCode);
-            Log::info('Loading url : '.$redirectURL);
+            Log::info('Loading url : ' . $redirectURL);
 
             return Redirect::to($redirectURL);
         }
@@ -89,82 +118,135 @@ class UrlShortenerController extends Controller
 
     /**
      * Get all URLs
+     * METHOD : GET
+     * URL    : admin/urls
      */
     public function getAllUrls(Request $request)
     {
-        $list = UserService::getAllShortUrls();
-        dd($list);
+        // validate user before continue
+        $user = Auth::user();
+        if (empty($user)) {
+            ErrorRespository::addError('0', 'Missing User Data !');
+            return response()->json((new CustomResponse())->error());
+        }
+
+        $shortUrlDetails = URLShortenerService::getAllShortUrls();
+        if (empty($shortUrlDetails)) {
+            ErrorRespository::addError('0', 'No short urls were found !');
+            return response()->json((new CustomResponse())->error());
+        }
+
+        $response = (new CustomResponse())->success(['data' => $shortUrlDetails]);
+        return json_encode($response, JSON_UNESCAPED_SLASHES);
+        // return response()->json((new CustomResponse())->success(['data' => $shortUrlDetails]));
     }
 
-    // To Modify the existing short URL
-    public function customizeShortUrl(Request $request)
+    /**
+     * Get URL details by id
+     * METHOD : GET
+     * URL    : admin/urls/{slug}
+     * PARAMS : slug (short code)
+     */
+    public function getUrlBySlug(Request $request, $slug)
     {
-        $existingShortCode = $request->input('existing_short_code', "");
-        $newShortCode = $request->input('new_short_code', "");
-        $prefix = $request->input('prefix', "");
-        $suffix = $request->input('suffix', "");
-
-        // check the customized url code has minimum length or not | possibly 5 characters
-        if (strlen($newShortCode) < 5 || strlen($newShortCode) > 20) {
-            ErrorRespository::addError('0', 'Custom URL Code should be 5-20 Characters !');
+        if (!URLShortenerService::isShortUrlCodeValid($slug) || (empty($slug))) {
+            ErrorRespository::addError('0', 'Invalid Id !!!');
             return response()->json((new CustomResponse())->error());
         }
 
-        // check if url code is valid or not | eg: ABCD1234
-        $shortCodeDetails = URLShortenerService::getShortUrlCodeDetails($existingShortCode);
-        if (empty($shortCodeDetails)) {
-            ErrorRespository::addError('0', 'Invalid Short Code !');
+        $shortURLDetails = URLShortenerService::getShortUrlDetailsByShortCode($slug);
+
+        $response = (new CustomResponse())->success(['data' => $shortURLDetails]);
+        return json_encode($response, JSON_UNESCAPED_SLASHES);
+        // return response()->json((new CustomResponse())->success(['data' => $shortURLDetails]));
+    }
+
+    /**
+     * Set redirect URL by slug
+     * METHOD : PUT
+     * URL    : admin/urls/{slug}
+     * PARAMS : url
+     */
+    public function setUrlBySlug(Request $request, string $slug)
+    {
+        // validate user before continue
+        $user = Auth::user();
+        if (empty($user)) {
+            ErrorRespository::addError('0', 'Missing User Data !');
             return response()->json((new CustomResponse())->error());
         }
 
-        // if valid, retrieve the redirect url
-        $redirectURL = URLShortenerService::getRedirectURL($existingShortCode);
+        // validate inputs
+        $valid = validator($request->only('url'), [
+            'url' => 'required|url',
+        ]);
 
-        // since we are customizing the short url, always add a middle letter or letters accordingly after the prefix text | eg: agent/*/ABCD1234
-        // https://stackoverflow.com/questions/2673360/most-efficient-way-to-get-next-letter-in-the-alphabet-using-php
-        // check if this short url already exists | if exists, then replace middle letter with the next in sequence
-        $str = 'a';
-        $updatedShortCode = $str . '/' . $newShortCode;
-
-        $updatedShortCode = self::customizeShortURLCode($updatedShortCode, $prefix, $suffix);
-
-        while (URLShortenerService::isShortUrlCodeValid($updatedShortCode)) {
-            $updatedShortCode = ++$str . '/' . $newShortCode;
-            $updatedShortCode = self::customizeShortURLCode($updatedShortCode, $prefix, $suffix);
+        if ($valid->fails()) {
+            $jsonError = response()->json($valid->errors()->all(), 400);
+            return response()->json($jsonError);
         }
-        Log::info('$newShortCode : ' . $newShortCode);
-        Log::info('$updatedShortCode : ' . $updatedShortCode);
 
-        // Save and return output to show on ui | when we save, save as agent/*/ABCD1234
-        $isSaveShortURL = URLShortenerService::saveShortUrlCode($updatedShortCode, $redirectURL);
-        Log::info('$isSaveShortURL : ' . $isSaveShortURL);
+        $newRedirectURL = $request->get('url', '');
+        if (empty($newRedirectURL)) {
+            ErrorRespository::addError('0', 'Missing new redirect link !');
+            return response()->json((new CustomResponse())->error());
+        }
 
-        if ($isSaveShortURL) {
-            $shortURL = route('shorturl', ['shortUrlCode' => $updatedShortCode]);
-            Log::info('$shortURL : ' . $shortURL);
+        if (!URLShortenerService::isShortUrlCodeValid($slug) || ($slug == "")) {
+            ErrorRespository::addError('0', 'Invalid Id !!!');
+            return response()->json((new CustomResponse())->error());
+        }
 
-            $response = (new CustomResponse())->success([
-                'data' => [
-                    'short_url' => $shortURL,
-                ]]);
-            return json_encode($response, JSON_UNESCAPED_SLASHES);
+        $shortURLDetails = URLShortenerService::getShortUrlDetailsByShortCode($slug);
+        $existingRedirectURL = $shortURLDetails->redirect_url;
+
+        // change only if both are different, else return the existing one
+        if ($existingRedirectURL != $newRedirectURL) {
+            Log::info('setUrlBySlug @ UrlShortenerController | redirect url ' . $slug . ' was updated by ' . $user->email);
+            $isUpdateSuccessful = URLShortenerService::updateRedirectURLByShortCode($slug, $newRedirectURL);
+            if (!$isUpdateSuccessful) {
+                return response()->json((new CustomResponse())->error(["Failed to update short url details !!"]));
+            }
+            $shortURLDetails = URLShortenerService::getShortUrlDetailsByShortCode($slug);
+        }
+
+        $response = (new CustomResponse())->success(['data' => $shortURLDetails]);
+        return json_encode($response, JSON_UNESCAPED_SLASHES);
+        // return response()->json((new CustomResponse())->success(['data' => $shortURLDetails]));
+    }
+
+    /**
+     * delete short URL details by slug
+     * METHOD : DELETE
+     * URL    : admin/urls/{slug}
+     */
+    public function deleteUrlBySlug(Request $request, string $slug)
+    {
+        // validate user before continue
+        $user = Auth::user();
+        if (empty($user)) {
+            ErrorRespository::addError('0', 'Missing User Data !');
+            return response()->json((new CustomResponse())->error());
+        }
+
+        // validate slug passed in
+        if (!URLShortenerService::isShortUrlCodeValid($slug) || ($slug == "")) {
+            ErrorRespository::addError('0', 'Invalid Id !!!');
+            return response()->json((new CustomResponse())->error());
+        }
+
+        // if exists, delete the url details
+        // put a log in for future references
+        if (URLShortenerService::isShortUrlCodeValid($slug)) {
+            Log::info('deleteUrlBySlug @ UrlShortenerController | slug ' . $slug . ' was deleted by ' . $user->email);
+            $isDeleteSuccessful = URLShortenerService::deleteShortURLDetails($slug);
+            if (!$isDeleteSuccessful) {
+                return response()->json((new CustomResponse())->error(["Failed to delete short url details !!"]));
+            }
+            return response()->json((new CustomResponse())->success());
         } else {
-            ErrorRespository::addError('0', 'Failed to generate short url !');
+            ErrorRespository::addError('0', 'Unable to find URL details !!');
             return response()->json((new CustomResponse())->error());
         }
-    }
-
-    private static function customizeShortURLCode(string $originalCode, ?string $prefix = null, ?string $suffix = null)
-    {
-        // Prefix
-        if (!empty($prefix)) {
-            $originalCode = $prefix . '/' . $originalCode;
-        }
-        // Suffix
-        if (!empty($suffix)) {
-            $originalCode = $originalCode . '/' . $suffix;
-        }
-
-        return $originalCode;
     }
 }
