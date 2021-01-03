@@ -108,7 +108,7 @@ The various routes are protected by bearer token. So to start using the various 
 
 Most of the errors responses are designed using the below structure 
 
-```JSON
+```JSON5
 {
   "timestamp": "2020-01-01T18:10:18+00:00", /* current time stamp*/
   "success": "error",
@@ -131,7 +131,7 @@ Inorder, to start using the various endpoints, We need to authenticate with the 
 
 A sample request is attached below
 
-```JSON
+```JSON5
 {
 	"name": "{name}", /* full name preferred */
 	"email": "{email_address}", /* email address to register */
@@ -141,7 +141,7 @@ A sample request is attached below
 
 A sample response is attached below
 
-```JSON
+```JSON5
 {
   "token_type": "Bearer",
   "expires_in": 31536000,
@@ -162,7 +162,7 @@ You can pass two parameters - `url` which is mandatory and `customSlug` which is
 
 A sample request is attached below
 
-```JSON
+```JSON5
 {
 	"url": "{url_to_shorten}", /* URL you wishes to shorten */
 	"customSlug" : "" /* optional | any random string whose length is in the range of 8-20 characters */
@@ -171,7 +171,7 @@ A sample request is attached below
 
 A sample response is attached below
 
-```JSON
+```JSON5
 {
   "timestamp": "2020-01-01T18:10:18+00:00", /* current time stamp*/
   "success": "ok", /* 'ok' if sucessful, 'error' if not sucessful */
@@ -192,7 +192,7 @@ Make sure that Bearer token is used when trying to access this url
 
 A sample response is attached below
 
-```JSON
+```JSON5
 {
   "timestamp": "2020-01-01T18:10:18+00:00", /* current time stamp*/
   "success": "ok", /* 'ok' if sucessful, 'error' if not sucessful */
@@ -219,7 +219,7 @@ Make sure that Bearer token is used when trying to access this url
 
 A sample response is attached below
 
-```JSON
+```JSON5
 {
   "timestamp": "2020-01-01T18:10:18+00:00", /* current time stamp*/
   "success": "ok", /* 'ok' if sucessful, 'error' if not sucessful */
@@ -242,7 +242,7 @@ Make sure that Bearer token is used when trying to access this url
 
 A sample response is attached below
 
-```JSON
+```JSON5
 {
   "timestamp": "2020-01-01T18:10:18+00:00", /* current time stamp*/
   "success": "ok", /* 'ok' if sucessful, 'error' if not sucessful */
@@ -260,7 +260,7 @@ Make sure that Bearer token is used when trying to access this url and set heade
 
 A sample response is attached below
 
-```JSON
+```JSON5
 {
   "timestamp": "2021-01-03T05:53:12+00:00",
   "success": "ok",
