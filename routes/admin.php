@@ -30,7 +30,7 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::put('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@setUrlBySlug')->name('set-url-by-slug');  
     
     // delete short url by slug
-    Route::delete('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@deleteUrlBySlug')->name('delete-url-by-slug');  
+    Route::delete('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@deleteUrlBySlug')->where('slug', '.*')->name('delete-url-by-slug');  
 });
 
 Route::get('/greeting', function () {
