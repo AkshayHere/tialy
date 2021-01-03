@@ -59,7 +59,7 @@ class UserController extends Controller
                 $responseData = json_decode($response, true);
 
                 if (isset($responseData['refresh_token'])) {
-                    Cache::put($email, $responseData['refresh_token'], 600);
+                    Cache::put($email, $responseData['refresh_token'], 3600);
                 }
 
                 return response()->json($responseData);
@@ -85,7 +85,7 @@ class UserController extends Controller
                 $response = Route::dispatch($token)->getContent();
                 $responseData = json_decode($response, true);
                 if (isset($responseData['refresh_token'])) {
-                    Cache::put($email, $responseData['refresh_token'], 600);
+                    Cache::put($email, $responseData['refresh_token'], 3600);
                 }
 
                 return response()->json($responseData);
@@ -124,7 +124,7 @@ class UserController extends Controller
             $responseData = json_decode($response, true);
 
             if (isset($responseData['refresh_token'])) {
-                Cache::put($email, $responseData['refresh_token'], 600);
+                Cache::put($email, $responseData['refresh_token'], 3600);
             }
 
             return response()->json($responseData);
