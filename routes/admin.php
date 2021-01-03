@@ -27,7 +27,7 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@getUrlBySlug')->name('get-url-by-slug');  
     
     // set redirect url by slug
-    Route::put('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@setUrlBySlug')->name('set-url-by-slug');  
+    Route::put('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@setUrlBySlug')->where('slug', '.*')->name('set-url-by-slug');  
     
     // delete short url by slug
     Route::delete('/urls/{slug}', '\App\Modules\URLShortener\Controllers\UrlShortenerController@deleteUrlBySlug')->where('slug', '.*')->name('delete-url-by-slug');  
