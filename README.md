@@ -53,13 +53,15 @@ Generate a new application key
 
     php artisan key:generate
 
-Generate a Encryption keys for [Laravel Pasport](https://laravel.com/docs/8.x/passport#introduction)
-
-    php artisan passport:keys
-
 Run the database migrations (**Set the database connection in .env before migrating**)
 
     php artisan migrate
+    
+Once successfully completed migration, run the below command necessary to prepare [Laravel Passport](https://laravel.com/docs/8.x/passport#creating-a-password-grant-client) for use. Laravel Passport helps us with user authentication.
+
+    php artisan passport:install
+
+
 
 Start the local development server
 
@@ -74,11 +76,8 @@ You can now access the server at http://localhost:8000
     composer install
     cp .env.example .env
     php artisan key:generate
-    php artisan passport:keys
-    
-**Make sure you set the correct database connection information before running the migrations** [Environment variables](#environment-variables)
-
     php artisan migrate
+    php artisan passport:install
     php artisan serve
 
 ----------
