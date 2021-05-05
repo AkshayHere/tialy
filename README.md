@@ -1,7 +1,7 @@
 
 # Tialy
 
-> ### A URL Shortner based on [laravel](https://laravel.com/)
+> ### A Simple OAuth based URL shortener written using [Laravel Framework](https://laravel.com/)
 > Motivated by [Tech in Asia](https://www.techinasia.com/)
 
 ----------
