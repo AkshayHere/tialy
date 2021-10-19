@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return redirect('https://www.techinasia.com/');
+    // return redirect('https://www.techinasia.com/');
+    return view('welcome');
 });
 
 Route::get('/{shortUrlCode}','\App\Modules\URLShortener\Controllers\UrlShortenerController@loadShortURL')->where('shortUrlCode', '.*')->name("shorturl");
